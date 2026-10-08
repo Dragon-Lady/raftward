@@ -212,7 +212,7 @@ def test_sqlite_interrupt_without_callback_exception_is_cancellation(config, dat
             if sql.startswith("PRAGMA integrity_check"):
                 exc = sqlite3.OperationalError("interrupted")
                 if error_code_available:
-                    exc.sqlite_errorcode = sqlite3.SQLITE_INTERRUPT
+                    exc.sqlite_errorcode = getattr(sqlite3, "SQLITE_INTERRUPT", 9)
                 raise exc
             return None
 

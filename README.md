@@ -5,7 +5,7 @@ backup folders. It detects missing files, corruption, suspicious shrinkage,
 permission changes, and patterns consistent with bulk encryption or renaming.
 It does not repair, restore, quarantine, or modify the files it watches.
 
-Version 0.1.0 is free software under Apache-2.0, for Linux with Python 3.10
+Version 0.1.1 is free software under Apache-2.0, for Linux with Python 3.10
 or newer. Its only runtime dependency is
 `tomli` on Python 3.10.
 

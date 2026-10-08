@@ -1,4 +1,4 @@
-# Release evidence: Raft Ward 0.1.0
+# Release evidence: Raft Ward 0.1.1
 
 Chief cleared this source for release after the laptop and box acceptance runs.
 Publication remains a separate operator action. No timer is installed or
