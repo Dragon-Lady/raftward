@@ -68,8 +68,8 @@ Linux permission/churn behavior and closed fixture reads; they do not establish
 full-host closure. A full-view regression checks kernel-protected same-UID
 descriptors as unverifiable while retaining name matching. A 50 MiB fixture
 with a 150 ms process reader checks bounded completion. SIGTERM and stale-copy
-tests cover runtime cleanup. Exact test count is in the builder's
-delivery report; do not infer real-machine acceptance from fixture passes.
+tests cover runtime cleanup. Exact test count is in the release record;
+do not infer real-machine acceptance from fixture passes.
 
 ## Outstanding acceptance and deliberate limits
 
