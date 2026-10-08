@@ -264,3 +264,11 @@ python3 -m pytest -q
 Tests use a temporary HOME, fixture databases, and injected process listings.
 They do not inspect real application data. No timer is installed. See
 `REVIEW.md` for the independent acceptance report and remaining limits.
+
+## Support
+
+Raft Ward is free and open, and it stays that way: every feature is available to
+everyone and nothing is gated behind sponsorship. Support is optional. If Raft
+Ward is useful to you and you want to help fund testing and independent review,
+you can sponsor through [GitHub Sponsors](https://github.com/sponsors/Dragon-Lady)
+or [Buy Me a Coffee](https://buymeacoffee.com/dragonladytools).
