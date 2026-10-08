@@ -5,7 +5,9 @@ backup folders. It detects missing files, corruption, suspicious shrinkage,
 permission changes, and patterns consistent with bulk encryption or renaming.
 It does not repair, restore, quarantine, or modify the files it watches.
 
-Version 0.1.1 is free software under Apache-2.0, for Linux with Python 3.10
+Version 0.1.2 adds a fail-closed Python API for checked handoffs while keeping
+the local CLI checker available independently.
+Raft Ward is free software under Apache-2.0, for Linux with Python 3.10
 or newer. Its only runtime dependency is
 `tomli` on Python 3.10.
 
@@ -81,6 +83,9 @@ class = "frozen"
 sqlite = true
 owners = ["notes"]
 ```
+
+If you add an `[owners]` table, it replaces the example `cursor` and `codex`
+defaults. List every owner you still want to watch explicitly.
 
 `live` tolerates ordinary hash and mtime changes. `frozen` flags changes in hash,
 size, or mtime. `folder` recursively checks mixed files and evaluates bulk changes
@@ -190,6 +195,22 @@ still participate in target-handle checks. Other unreadable same-UID identity
 or descriptors still defer.
 `process-descriptor-state-unknown` distinguishes descriptor visibility failure.
 
+The 0.1.2 draft adds `raftward.gate(path, owners)` and
+`raftward.verify(frozen_path, expected_sha256=..., runtime=...)` for a caller
+that owns a private frozen copy. Both return a `Result` with `pass`, `fail`, or
+`inconclusive`; only `pass` may authorize a handoff. `gate` checks local owner
+and descriptor state without opening the watched path. `verify` checks the
+frozen copy's digest, header, and SQLite integrity. It has no stored baseline,
+so a single copy cannot establish mass change or semantic tampering. Raft
+Mover must retain its own lineage and never interpret a fresh hash as proof
+that a changed database is trustworthy.
+The API's `gate()` does not default to the CLI's `rclone`/`rsync` transfer
+command list. Callers must pass the transfer directories, commands, or locks
+they need to gate. This avoids making a permanent `rclone mount` process block
+every API call. `verify()` can compare sample entropy only if the caller
+supplies a prior baseline; a one-file check cannot apply the folder-level
+`MASS-CHANGE` or prior-file `DELETED` rules.
+
 Other-UID `exe` and descriptor access is normally restricted by Linux. Raft Ward
 matches those processes using readable `comm`/`cmdline`; at least one identity
 field must be readable. It does not inspect other-UID descriptors and cannot prove
@@ -254,6 +275,16 @@ Other channel keys are `alert_ntfy_topic`, `alert_smtp_host`, `alert_smtp_port`,
 `alert_smtp_username`, `alert_smtp_from`, and `alert_email`. HTTPS is required
 except on loopback; SMTP encryption is required off loopback. Errors never echo
 remote credential-bearing URLs.
+
+## Moving checked copies between machines
+
+Raft Ward alone checks local data; it never sets up rclone, transfers a
+database, or restores another machine's state. Raft Mover is the companion
+handoff tool under development and will require Raft Ward for every frozen
+copy. For a step-by-step encrypted rclone setup, the planned SSH option
+(with optional Tailscale), and a private-folder alternative, see
+the [beginner transport guide](https://github.com/Dragon-Lady/raftward/blob/main/docs/transport-setup.md). Do not sync a live
+SQLite database or its sidecars directly.
 
 ## Development and review
 

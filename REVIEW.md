@@ -1,4 +1,24 @@
-# Release evidence: Raft Ward 0.1.1
+# Release evidence: Raft Ward 0.1.1 and 0.1.2
+
+## 0.1.2 for Raft Mover
+
+This draft adds the explicit `gate` and `verify` Python API without changing
+the 0.1.1 CLI scanning path. A result is `pass`, `fail`, or `inconclusive`;
+unknown process state, invalid glob-like API paths, or unexpected exceptions
+never become a pass. The caller must supply transfer scope to `gate`.
+`verify` checks a frozen copy's digest, size, SQLite header and integrity;
+entropy needs a supplied baseline. Single-copy verification cannot evaluate
+the folder-level MASS-CHANGE or previous-file DELETED rules. No alert or
+network module is used by the API. The beginner transport guide is included
+in the source distribution. Chief's r3 review reported 141 passing tests and
+one skipped protected-fd test at normal load, or 142 passing with a controlled
+non-dumpable process. Run the suite again on the release source.
+
+Tanya authorized publication on 2026-10-08. Verify the public setup guide,
+release tag, package files, and PyPI page separately; this source note alone
+does not establish publication.
+
+## 0.1.1 release
 
 Chief cleared this source for release after the laptop and box acceptance runs.
 Publication remains a separate operator action. No timer is installed or
