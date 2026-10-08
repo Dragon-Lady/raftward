@@ -21,6 +21,7 @@ from raftward.scanner import Scanner
 def fixture_config(config):
     value = dict(config)
     value["owners"] = {"fixture": ["raft-fixture-absent-" + str(os.getpid())]}
+    value["transfer_commands"] = ["raft-fixture-transfer-absent-" + str(os.getpid())]
     value["targets"] = [dict(row, owners=["fixture"]) for row in config["targets"]]
     return validate(value)
 
