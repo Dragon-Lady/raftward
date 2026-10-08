@@ -1,0 +1,43 @@
+# Install your edited copy as ~/.config/raftward/config.toml with mode 0600.
+# List EVERY involved machine. v0.1 supports proving only local process state:
+# machines = ["local", "other-machine"] intentionally defers every check.
+machines = ["local"]
+alert_channels = ["stdout"]
+transfer_commands = ["rclone", "rsync"]
+transfer_locks = ["~/backups/transfer.lock"]
+mass_count = 20
+max_files = 10000
+
+# Substring matches are case insensitive across comm, executable, and argv.
+# Workers are included. There is no process allowlist.
+[owners]
+cursor = ["cursor"]
+codex = ["codex"]
+notebook = ["notebook-app", "notebook-worker"]
+
+[[targets]]
+name = "editor-state"
+path = "~/.config/Cursor/User/globalStorage/state.vscdb"
+class = "live"
+sqlite = true
+owners = ["cursor"]
+
+[[targets]]
+name = "agent-state"
+path = "~/.codex/state_*.sqlite"
+class = "live"
+sqlite = true
+owners = ["codex"]
+
+[[targets]]
+name = "closed-notebook-export"
+path = "~/backups/notebook.sqlite"
+class = "frozen"
+sqlite = true
+owners = ["notebook"]
+
+[[targets]]
+name = "export-packets"
+path = "~/backups/packets"
+class = "folder"
+owners = ["cursor", "codex"]
