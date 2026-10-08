@@ -67,5 +67,16 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install Push Guard package scanner
+        run: python -m pip install push-guard==0.4.1
+      - name: Inspect distributions before PyPI upload
+        env:
+          PUSH_GUARD_BLOCKED_TERMS: ${{ secrets.PUSH_GUARD_BLOCKED_TERMS }}
+        run: >-
+          python -m push_guard scan-package --require-explicit-terms
+          dist/*.whl dist/*.tar.gz
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
