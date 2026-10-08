@@ -2,7 +2,7 @@
 
 ## 0.1.2 for Raft Mover
 
-This draft adds the explicit `gate` and `verify` Python API without changing
+0.1.2 adds the explicit `gate` and `verify` Python API without changing
 the 0.1.1 CLI scanning path. A result is `pass`, `fail`, or `inconclusive`;
 unknown process state, invalid glob-like API paths, or unexpected exceptions
 never become a pass. The caller must supply transfer scope to `gate`.
@@ -10,17 +10,19 @@ never become a pass. The caller must supply transfer scope to `gate`.
 entropy needs a supplied baseline. Single-copy verification cannot evaluate
 the folder-level MASS-CHANGE or previous-file DELETED rules. No alert or
 network module is used by the API. The beginner transport guide is included
-in the source distribution. Chief's r3 review reported 141 passing tests and
-one skipped protected-fd test at normal load, or 142 passing with a controlled
-non-dumpable process. Run the suite again on the release source.
+in the source distribution. An independent review (round 3) reported 141
+passing tests and one skipped protected-fd test at normal load, or 142 passing
+with a controlled non-dumpable process. Run the suite again on the release
+source.
 
-Tanya authorized publication on 2026-10-08. Verify the public setup guide,
-release tag, package files, and PyPI page separately; this source note alone
-does not establish publication.
+Publication was maintainer-authorized on 2026-10-08. Verify the public setup
+guide, release tag, package files, and PyPI page separately; this source note
+alone does not establish publication.
 
 ## 0.1.1 release
 
-Chief cleared this source for release after the laptop and box acceptance runs.
+An independent review cleared this source for release after acceptance runs
+on two machines.
 Publication remains a separate operator action. No timer is installed or
 enabled by the package.
 
@@ -80,13 +82,14 @@ delivery report; do not infer real-machine acceptance from fixture passes.
 3. **Polling is not an interlock.** Process startup can race a syscall or occur
    between checkpoints. There is no claim of instantaneous zero-race protection.
    Users must keep owning applications closed for the full run.
-4. Chief reported that the laptop run checked a scratch SQLite database and
-   skipped a database owned by a running `bash` process with zero syscalls to
-   that skipped target. `systemd --user` and `sd-pam` were reported as
-   descriptor-unverifiable. Ordinary same-UID descriptor denial still deferred.
-   Chief reported 138/138 box tests passing and SIGINT exit 130 with clean
-   cancellation. This acceptance applies to the tested local configuration;
-   it does not establish closure on another machine.
+4. An independent review reported that the first machine's acceptance run
+   checked a scratch SQLite database and skipped a database owned by a running
+   `bash` process with zero syscalls to that skipped target. `systemd --user`
+   and `sd-pam` were reported as descriptor-unverifiable. Ordinary same-UID
+   descriptor denial still deferred. The review also reported 138/138 tests
+   passing on the second machine and SIGINT exit 130 with clean cancellation.
+   This acceptance applies to the tested local configuration; it does not
+   establish closure on another machine.
 5. Accept reasons are fingerprinted rather than persisted as raw text. This is a
    deliberate privacy narrowing of the initial scope.
 6. No network alert was sent during fixture tests. Source commits, package
