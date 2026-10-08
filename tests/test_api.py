@@ -1,8 +1,18 @@
 import hashlib
+from pathlib import Path
 import sqlite3
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
-from raftward import API_VERSION, gate, verify
+from raftward import API_VERSION, __version__, gate, verify
 from raftward.guard import Deferred, Process
+
+
+def test_runtime_version_matches_package_metadata():
+    metadata = tomllib.loads((Path(__file__).resolve().parents[1] / "pyproject.toml").read_text())
+    assert __version__ == metadata["project"]["version"] == "0.1.4"
 
 
 def test_public_api_passes_frozen_copy_and_rejects_change(tmp_path):

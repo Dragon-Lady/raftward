@@ -5,7 +5,8 @@ backup folders. It detects missing files, corruption, suspicious shrinkage,
 permission changes, and patterns consistent with bulk encryption or renaming.
 It does not repair, restore, quarantine, or modify the files it watches.
 
-Version 0.1.2 adds a fail-closed Python API for checked handoffs while keeping
+Version 0.1.4 aligns the reported runtime version with the package version.
+Version 0.1.2 added a fail-closed Python API for checked handoffs while keeping
 the local CLI checker available independently.
 Raft Ward is free software under Apache-2.0, for Linux with Python 3.10
 or newer. Its only runtime dependency is
