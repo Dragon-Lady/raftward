@@ -19,6 +19,8 @@ raftward = "raftward.cli:main"
 [project.urls]
 Homepage = "https://github.com/Dragon-Lady/raftward"
 Issues = "https://github.com/Dragon-Lady/raftward/issues"
+Funding = "https://github.com/sponsors/Dragon-Lady"
+Changelog = "https://github.com/Dragon-Lady/raftward/releases"
 
 [tool.setuptools.packages.find]
 include = ["raftward*"]

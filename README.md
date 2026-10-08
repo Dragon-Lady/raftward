@@ -195,7 +195,7 @@ still participate in target-handle checks. Other unreadable same-UID identity
 or descriptors still defer.
 `process-descriptor-state-unknown` distinguishes descriptor visibility failure.
 
-The 0.1.2 draft adds `raftward.gate(path, owners)` and
+Version 0.1.2 adds `raftward.gate(path, owners)` and
 `raftward.verify(frozen_path, expected_sha256=..., runtime=...)` for a caller
 that owns a private frozen copy. Both return a `Result` with `pass`, `fail`, or
 `inconclusive`; only `pass` may authorize a handoff. `gate` checks local owner

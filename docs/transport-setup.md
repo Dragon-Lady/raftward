@@ -17,10 +17,12 @@ cloud or folder transport; the receiver re-checks **its own** owning app
 before reading or replacing its database.
 Never point a cloud sync tool directly at a live chat database or its `-wal`,
 `-shm`, or `-journal` files. Do not run `rclone sync` on an app's data directory.
-On TowerCastle, **do not point a raft or the folder transport at `~/OneDrive`**.
-That mount is for browsing/transport, not a safe live database location or the
-authoritative cloud endpoint. For OneDrive packets, use the configured rclone
-remote directly, through `raftcrypt:rafts` in the example below.
+If a machine (for example, a second Linux machine) mounts your cloud drive
+locally, such as at `~/cloud-mount`, **do not point a raft or the folder
+transport at that mount**. That mount is for browsing/transport, not a safe
+live database location or the authoritative cloud endpoint. For cloud packets,
+use the configured rclone remote directly, through `raftcrypt:rafts` in the
+example below.
 
 ## Pair the two machines before moving data
 
@@ -146,8 +148,9 @@ apply on both machines.
 Use this only when **both** machines already see the same securely shared
 folder. The shared root must be owned by your user and mode `0700` on each
 machine. A plain cloud-synced folder can expose chat contents; prefer an
-encrypted drive or the rclone crypt option above. Do not use TowerCastle's
-`~/OneDrive` mount as this folder. Configure the local path on each machine:
+encrypted drive or the rclone crypt option above. Do not use a locally mounted
+cloud drive (such as `~/cloud-mount` on a second Linux machine) as this folder.
+Configure the local path on each machine:
 
 ```toml
 transport = { kind = "folder", path = "/path/to/private/shared/rafts" }
