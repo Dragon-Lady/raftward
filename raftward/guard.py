@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import time
 
+from .config import OWNER_EXEMPT_KINDS  # noqa: F401  (validated there)
 from .safety import absolute
 
 
@@ -23,6 +24,7 @@ class Process:
     pid: int = -1
     uid: int = -1
     fd_check: str = "verified"
+    argv: tuple = ()
 
 
 POLL_SECONDS = 0.100
@@ -173,9 +175,10 @@ def _process(path, optional_exe=False):
         return None
     if (before.st_ino, before.st_uid, started) != (after.st_ino, after.st_uid, final_started):
         raise _Retry
+    argv = tuple(part.decode("utf-8", "replace") for part in (cmdline or b"").split(b"\0") if part)
     return Process((comm or b"").decode("utf-8", "replace").strip(), exe,
                    (cmdline or b"").replace(b"\0", b" ").decode("utf-8", "replace"),
-                   tuple(fds), int(path.name), before.st_uid, fd_check)
+                   tuple(fds), int(path.name), before.st_uid, fd_check, argv)
 
 
 def processes(proc_root=Path("/proc")):
@@ -230,6 +233,30 @@ def overlaps(path, target):
     return _overlaps_normalized(str(absolute(path.removesuffix(" (deleted)"))), _target_strings(target))
 
 
+# Opt-in owner exemptions. Each kind is a fixed structural argv check, never a
+# user-supplied pattern. An exempt process is only left out of OWNER matching:
+# transfer, transfer-directory and open-target-descriptor checks still apply.
+def _is_cursor_agent_worker(process):
+    """Cursor's background agent worker: `cursor-agent ... worker start ...`.
+
+    It runs separately from the editor and does not own the editor databases.
+    """
+    argv = process.argv or tuple(process.cmdline.split())
+    program = next((i for i, arg in enumerate(argv[:3])
+                    if any(part.startswith("cursor-agent") for part in arg.split("/"))), None)
+    if program is None:
+        return False
+    rest = argv[program + 1:]
+    return any(rest[i] == "worker" and rest[i + 1] == "start" for i in range(len(rest) - 1))
+
+
+_EXEMPT_CHECKS = {"cursor-agent-worker": _is_cursor_agent_worker}
+
+
+def owner_exempt(process, kinds):
+    return any(_EXEMPT_CHECKS[kind](process) for kind in kinds)
+
+
 class Guard:
     def __init__(self, cfg, reader=None):
         self.cfg = cfg
@@ -260,12 +287,13 @@ class Guard:
         owner_names = {owner for target in targets for owner in target["owners"]}
         patterns = [pattern.casefold() for owner in owner_names for pattern in self.cfg["owners"][owner]]
         transfers = [v.casefold() for v in self.cfg["transfer_commands"]]
+        exempt = tuple(self.cfg.get("owner_exempt", ()))
         for process in listing:
             # Exclude only this invocation, never its parent, siblings or workers.
             if process.pid == os.getpid():
                 continue
             text = "\n".join((process.comm, process.exe, process.cmdline)).casefold()
-            if any(pattern in text for pattern in patterns):
+            if any(pattern in text for pattern in patterns) and not owner_exempt(process, exempt):
                 raise Deferred("owning-app-running")
             # Transfer scope is deliberately conservative: any configured
             # transfer process stops the whole run, even if argv is ambiguous.

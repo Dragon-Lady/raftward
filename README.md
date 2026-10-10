@@ -24,7 +24,11 @@ or newer. Its only runtime dependency is
   entire run. A stale local status file never counts as remote closure.
 - Owner matching is generic and case insensitive across Linux `/proc` process
   names, executable paths, and command lines. Cursor and Codex are defaults, not
-  special cases. There is no owning-process allowlist.
+  special cases. There is no free-form owning-process allowlist. One opt-in,
+  fixed exemption exists: `owner_exempt = ["cursor-agent-worker"]` stops Cursor's
+  detached background agent worker (`cursor-agent ... worker start`) from
+  counting as an owner of Cursor targets. It is still checked for open target
+  descriptors and transfer activity, and its arguments are never recorded.
 - Targets are opened only with read-only descriptors, no locks. SQLite is never
   connected to an original. Source symlinks, unsupported files, foreign-owned
   paths, a visible same-UID foreign target/sidecar descriptor, transfer locks, and running
