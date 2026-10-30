@@ -9,7 +9,11 @@ mass_count = 20
 max_files = 10000
 
 # Substring matches are case insensitive across comm, executable, and argv.
-# Workers are included. There is no process allowlist.
+# Workers are included. There is no free-form process allowlist.
+# Optional fixed exemption (off by default): Cursor's detached background agent
+# worker (`cursor-agent ... worker start`) is not treated as a Cursor owner.
+# It is still checked for open target descriptors and transfers.
+# owner_exempt = ["cursor-agent-worker"]
 [owners]
 cursor = ["cursor"]
 codex = ["codex"]

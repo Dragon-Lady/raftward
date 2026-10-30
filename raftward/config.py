@@ -10,6 +10,8 @@ except ImportError:  # Python 3.10
 
 from .safety import SafeError, absolute, bounded_read
 
+OWNER_EXEMPT_KINDS = ("cursor-agent-worker",)  # fixed structural checks in guard.py
+
 DEFAULT_OWNERS = {"cursor": ["cursor"], "codex": ["codex"]}
 NAME = re.compile(r"[A-Za-z0-9_-]{1,64}\Z")
 
@@ -69,6 +71,9 @@ def validate(cfg):
             raise SafeError("invalid transfer lock")
         cfg["transfer_locks"] = cfg.get("transfer_locks", []) + [cfg["transfer_lock"]]
         cfg.pop("transfer_lock")
+    cfg.setdefault("owner_exempt", [])
+    if not isinstance(cfg["owner_exempt"], list) or any(v not in OWNER_EXEMPT_KINDS for v in cfg["owner_exempt"]):
+        raise SafeError("owner_exempt accepts only: " + ", ".join(OWNER_EXEMPT_KINDS))
     cfg.setdefault("transfer_commands", ["rclone", "rsync"])
     cfg.setdefault("transfer_dirs", [])
     cfg.setdefault("transfer_locks", [])

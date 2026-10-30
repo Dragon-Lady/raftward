@@ -12,7 +12,7 @@ from raftward.guard import Deferred, Process
 
 def test_runtime_version_matches_package_metadata():
     metadata = tomllib.loads((Path(__file__).resolve().parents[1] / "pyproject.toml").read_text())
-    assert __version__ == metadata["project"]["version"] == "0.1.4"
+    assert __version__ == metadata["project"]["version"] == "0.1.5"
 
 
 def test_public_api_passes_frozen_copy_and_rejects_change(tmp_path):
@@ -72,3 +72,16 @@ def test_api_rejects_glob_paths_and_unexpected_errors(tmp_path, monkeypatch):
     result = verify(tmp_path / "ok.sqlite", expected_sha256="0" * 64,
                     runtime=tmp_path / "runtime")
     assert (result.status, result.reason) == ("inconclusive", "verify-error")
+
+
+def test_gate_owner_exempt_skips_only_cursor_agent_worker(tmp_path):
+    from raftward.api import gate
+    from raftward.guard import Process
+    argv = ("/opt/agent/cursor-agent", "--api-key", "marker-value-from-argv", "worker", "start")
+    worker = Process("cursor-agent", "", " ".join(argv), argv=argv)
+    editor = Process("cursor", "/usr/share/cursor/cursor", "/usr/share/cursor/cursor")
+    path = tmp_path / "state.vscdb"
+    assert gate(path, ["cursor"], reader=lambda: [worker]).reason == "owning-app-running"
+    assert gate(path, ["cursor"], reader=lambda: [worker], owner_exempt=["cursor-agent-worker"]).passed
+    assert gate(path, ["cursor"], reader=lambda: [worker, editor], owner_exempt=["cursor-agent-worker"]).reason == "owning-app-running"
+    assert gate(path, ["cursor"], reader=lambda: [], owner_exempt=["anything"]).status == "inconclusive"

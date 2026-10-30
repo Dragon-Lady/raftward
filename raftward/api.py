@@ -38,12 +38,14 @@ class Result:
 
 
 def gate(path, owners, *, transfer_commands=(), transfer_dirs=(),
-         transfer_locks=(), reader=None):
+         transfer_locks=(), reader=None, owner_exempt=()):
     """Return a fresh local owner/descriptor gate for one path.
 
     ``owners`` is a nonempty sequence of process-name fragments including
     workers. A protected same-UID process is name-gated under Raft Ward's
     approved rule, with ``open_file_check='unverifiable'`` disclosed.
+    ``owner_exempt`` takes only fixed kinds (``"cursor-agent-worker"``); an
+    exempt process is still checked for open descriptors and transfers.
     """
     if sys.platform != "linux":
         return Result("inconclusive", "unsupported-platform")
@@ -61,6 +63,7 @@ def gate(path, owners, *, transfer_commands=(), transfer_dirs=(),
             "transfer_commands": list(transfer_commands),
             "transfer_dirs": list(transfer_dirs),
             "transfer_locks": list(transfer_locks),
+            "owner_exempt": list(owner_exempt),
         })
         guard = Guard(cfg, reader)
         guard.check(force=True)

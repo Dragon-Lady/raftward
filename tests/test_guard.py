@@ -115,3 +115,91 @@ def test_transfer_lock(config, database):
     path.touch()
     with pytest.raises(Deferred, match="transfer-lock-present"):
         Guard(config, lambda: []).check()
+
+
+WORKER_MARKER = "marker-value-from-argv"
+WORKER_ARGV = ("/opt/agent/cursor-agent", "--api-key", WORKER_MARKER, "worker", "start",
+               "--worker-dir", "/work/project", "--name", "project @ host")
+
+
+def _cursor_owned(config, exempt=False):
+    config["owners"] = {"cursor": ["cursor"]}
+    config["targets"][0]["owners"] = ["cursor"]
+    if exempt:
+        config["owner_exempt"] = ["cursor-agent-worker"]
+
+
+def _worker():
+    return Process("cursor-agent", "/opt/agent/cursor-agent", " ".join(WORKER_ARGV), argv=WORKER_ARGV)
+
+
+def test_cursor_agent_worker_still_skips_owner_target_without_opt_in(config, monkeypatch, run):
+    _cursor_owned(config)
+    monkeypatch.setattr("raftward.guard.processes", lambda: [_worker()])
+    code, out, err = run("check", "--format", "json")
+    report = json.loads(out)
+    assert code == 3 and report["skipped"] == [{"name": "notes", "reason": "owning-app-running"}]
+    assert WORKER_MARKER not in out + err
+
+
+def test_opted_in_cursor_agent_worker_is_not_an_owner(config, monkeypatch, run):
+    _cursor_owned(config, exempt=True)
+    monkeypatch.setattr("raftward.guard.processes", lambda: [_worker()])
+    code, out, err = run("check", "--format", "json")
+    report = json.loads(out)
+    assert code == 0 and not err and report["skipped"] == []
+    assert WORKER_MARKER not in out + err
+
+
+@pytest.mark.parametrize("proc", [
+    Process("cursor", "/usr/share/cursor/cursor", "/usr/share/cursor/cursor --no-sandbox"),
+    Process("cursor-agent", "/opt/agent/cursor-agent", "cursor-agent chat"),
+    Process("cursor-agent", "", "cursor-agent worker status"),
+    Process("node", "", "node /x/run.js cursor-agent worker start", argv=("node", "/x/run.js", "x", "cursor-agent", "worker", "start")),
+])
+def test_opt_in_exempts_only_the_worker_start_shape(config, monkeypatch, run, proc):
+    _cursor_owned(config, exempt=True)
+    monkeypatch.setattr("raftward.guard.processes", lambda: [proc])
+    code, out, _ = run("check", "--format", "json")
+    assert code == 3 and '"reason": "owning-app-running"' in out
+
+
+def test_opted_in_worker_holding_target_open_still_defers(config, database, monkeypatch, run):
+    _cursor_owned(config, exempt=True)
+    worker = Process("cursor-agent", "", " ".join(WORKER_ARGV), (str(database),), argv=WORKER_ARGV)
+    monkeypatch.setattr("raftward.guard.processes", lambda: [worker])
+    code, out, err = run("check", "--format", "json")
+    assert code == 3 and "target-handle-open" in out and WORKER_MARKER not in out + err
+
+
+@pytest.mark.parametrize("value", [["cursor"], "cursor-agent-worker", ["*"]])
+def test_owner_exempt_accepts_only_known_kinds(value):
+    with pytest.raises(Exception):
+        validate({"owner_exempt": value})
+
+
+def test_worker_shape_with_endpoint_and_install_path():
+    from raftward.guard import _is_cursor_agent_worker
+    proc = Process("cursor-agent", "", "", argv=("/home/u/.local/share/cursor-agent/versions/1/cursor-agent", "--api-key", "k", "--endpoint", "https://e", "worker", "start"))
+    assert _is_cursor_agent_worker(proc)
+
+
+def test_real_proc_argv_is_split_on_nul():
+    import subprocess
+    import sys
+    from raftward.guard import _process
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)", "two words"])
+    try:
+        for _ in range(50):
+            try:
+                proc = _process(Path("/proc") / str(child.pid))
+                if proc and proc.argv[-1] == "two words":
+                    break
+            except Exception:
+                pass
+            import time
+            time.sleep(0.02)
+        assert proc.argv[1:] == ("-c", "import time; time.sleep(30)", "two words")
+    finally:
+        child.kill()
+        child.wait()
