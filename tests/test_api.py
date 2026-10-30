@@ -12,7 +12,7 @@ from raftward.guard import Deferred, Process
 
 def test_runtime_version_matches_package_metadata():
     metadata = tomllib.loads((Path(__file__).resolve().parents[1] / "pyproject.toml").read_text())
-    assert __version__ == metadata["project"]["version"] == "0.1.4"
+    assert __version__ == metadata["project"]["version"] == "0.1.5"
 
 
 def test_public_api_passes_frozen_copy_and_rejects_change(tmp_path):

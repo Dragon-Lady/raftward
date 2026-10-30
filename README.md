@@ -5,6 +5,9 @@ backup folders. It detects missing files, corruption, suspicious shrinkage,
 permission changes, and patterns consistent with bulk encryption or renaming.
 It does not repair, restore, quarantine, or modify the files it watches.
 
+Version 0.1.5 adds an opt-in `owner_exempt = ["cursor-agent-worker"]` setting
+(also `gate(..., owner_exempt=...)`) so Cursor's detached background agent
+worker does not count as a Cursor owner. Default behavior is unchanged.
 Version 0.1.4 aligns the reported runtime version with the package version.
 Version 0.1.2 added a fail-closed Python API for checked handoffs while keeping
 the local CLI checker available independently.
